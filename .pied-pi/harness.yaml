@@ -1,0 +1,39 @@
+slug: example-feature
+phases:
+  - name: research
+    label: "Research"
+    optional: false
+    requires: []
+    confirm: true
+    files_exist:
+      - "docs/{slug}/research.md"
+    skill: research
+  - name: design
+    label: "Design"
+    optional: true
+    requires: [research]
+    confirm: false
+    files_exist: []
+    skill: design
+  - name: plan
+    label: "Plan"
+    optional: false
+    requires: [research]
+    confirm: true
+    files_exist:
+      - "docs/{slug}/plan.md"
+    skill: planning
+  - name: implement
+    label: "Implementation"
+    optional: false
+    requires: [plan]
+    confirm: false
+    files_exist: []
+    skill: implementation
+  - name: docs
+    label: "Documentation"
+    optional: false
+    requires: [implement]
+    confirm: false
+    files_exist: []
+    skill: documentation

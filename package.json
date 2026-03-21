@@ -1,0 +1,16 @@
+{
+  "name": "@anthropic-user/pi-harness",
+  "version": "0.1.0",
+  "description": "A phased development harness for Pi coding agent — enforces Research → Planning → Implementation → Documentation workflow",
+  "keywords": ["pi-package"],
+  "pi": {
+    "extensions": ["./extensions"]
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*",
+    "@sinclair/typebox": "*"
+  }
+}
