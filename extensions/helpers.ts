@@ -1,16 +1,14 @@
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { PhaseConfig, HarnessConfig, HarnessState } from "./types";
 
 export const CUSTOM_ENTRY_TYPE = "pi-harness-state";
 
-export function freshState(slug: string, firstPhase: string): HarnessState {
+export function freshState(firstPhase: string): HarnessState {
   return {
     currentPhase: firstPhase,
     completed: [],
-    skipped: [],
     active: true,
-    slug,
     pendingConfirm: false,
   };
 }
@@ -27,24 +25,12 @@ export function nextPhase(config: HarnessConfig, state: HarnessState): PhaseConf
   for (const phase of config.phases) {
     if (
       !state.completed.includes(phase.name) &&
-      !state.skipped.includes(phase.name) &&
       canAdvance(phase, state)
     ) {
       return phase;
     }
   }
   return null;
-}
-
-export function checkFilesExist(phase: PhaseConfig, slug: string, projectRoot: string): string[] {
-  const missing: string[] = [];
-  for (const pattern of phase.files_exist) {
-    const resolved = join(projectRoot, pattern.replace(/\{slug\}/g, slug));
-    if (!existsSync(resolved)) {
-      missing.push(resolved);
-    }
-  }
-  return missing;
 }
 
 export function loadSkillContent(piedPiDir: string, skill: string): string {
@@ -63,7 +49,6 @@ export function buildSystemPrompt(config: HarnessConfig, state: HarnessState): s
   const progress = config.phases
     .map((p) => {
       if (state.completed.includes(p.name)) return `  [done] ${p.label}`;
-      if (state.skipped.includes(p.name)) return `  [skip] ${p.label}`;
       if (p.name === state.currentPhase) return `  [>>]   ${p.label}`;
       return `  [  ]   ${p.label}`;
     })
@@ -74,12 +59,12 @@ export function buildSystemPrompt(config: HarnessConfig, state: HarnessState): s
     : "";
 
   return `<pi-harness>
-Phase: ${phase.label} | Slug: ${state.slug}
+Phase: ${phase.label}
 
 Progress:
 ${progress}
 
-Tools: harness_advance, harness_skip, harness_instructions, harness_status
+Tools: harness_advance, harness_instructions
 
 Rules:
 - Complete the current phase before advancing.
