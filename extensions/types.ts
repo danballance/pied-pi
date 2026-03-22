@@ -5,15 +5,12 @@ import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 export interface PhaseConfig {
   name: string;
   label: string;
-  optional: boolean;
   requires: string[];
   confirm: boolean;
-  files_exist: string[];
   skill: string;
 }
 
 export interface HarnessConfig {
-  slug: string;
   phases: PhaseConfig[];
 }
 
@@ -22,9 +19,7 @@ export interface HarnessConfig {
 export interface HarnessState {
   currentPhase: string;
   completed: string[];
-  skipped: string[];
   active: boolean;
-  slug: string;
   pendingConfirm: boolean;
 }
 
