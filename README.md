@@ -10,7 +10,7 @@ The harness is a Pi **extension** that:
 2. **Loads phases from `.pied-pi/harness.yaml`** — names, ordering, prerequisites, gates
 3. **Injects a compact status block** into the system prompt every turn (phase name, progress, rules — no skill content)
 4. **Provides tools** for the model to read phase instructions on demand and signal transitions
-5. **Enforces transitions deterministically** — prerequisites, file-existence checks, and user confirmation gates
+5. **Enforces transitions deterministically** — prerequisites and user confirmation gates
 
 ## Project Setup
 
@@ -30,33 +30,24 @@ See `examples/.pied-pi/` for a complete example harness with skill files you can
 
 ## Config
 
-Phases are defined in `.pied-pi/harness.yaml`. Every field is required on every phase — no defaults, no inference.
+Phases are defined in `.pied-pi/harness.yaml`.
 
 ```yaml
-slug: my-feature
 phases:
   - name: research
     label: "Research"
-    optional: false
     requires: []
     confirm: true
-    files_exist:
-      - "docs/{slug}/research.md"
     skill: research
   - name: plan
     label: "Plan"
-    optional: false
     requires: [research]
     confirm: true
-    files_exist:
-      - "docs/{slug}/plan.md"
     skill: planning
   - name: implement
     label: "Implementation"
-    optional: false
     requires: [plan]
     confirm: false
-    files_exist: []
     skill: implementation
 ```
 
@@ -66,19 +57,16 @@ phases:
 |-------|------|-------------|
 | `name` | string | Machine-readable identifier |
 | `label` | string | Human-readable display name |
-| `optional` | boolean | Whether the model can skip this phase |
 | `requires` | string[] | Phase names that must be in `completed` before entry |
 | `confirm` | boolean | Whether user approval is required before advancing |
-| `files_exist` | string[] | Paths (with `{slug}` substitution) that must exist before advancing |
 | `skill` | string | Skill directory name — maps to `.pied-pi/skills/<skill>/SKILL.md` |
 
 ### Transition logic
 
 Advancing from a phase requires:
 
-1. All `requires` phases are in `completed` (skipped does NOT count)
-2. All `files_exist` paths exist on disk (resolved relative to the project root)
-3. If `confirm: true` — user must approve (two-call pattern: first call presents work, second call after approval advances)
+1. All `requires` phases are in `completed`
+2. If `confirm: true` — user must approve (two-call pattern: first call presents work, second call after approval advances)
 
 ### Discovery
 
@@ -91,18 +79,14 @@ If no `.pied-pi/harness.yaml` is found, the extension throws a clear error with 
 | Tool | Description |
 |------|-------------|
 | `harness_advance` | Signal phase completion — checks gates, then advances |
-| `harness_skip` | Skip an optional phase |
 | `harness_instructions` | Load the full skill content for the current phase |
-| `harness_status` | Show current phase, slug, and progress |
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `/harness [slug]` | Start the harness (optional slug override) |
+| `/harness` | Start the harness |
 | `/phase` | Show progress widget |
-| `/harness-reset` | Clear all state |
-| `/harness-goto <phase>` | Jump to a specific phase |
 | `/harness-complete <phase>` | Mark a phase as completed (e.g., when you did the work yourself) |
 
 ## Architecture
@@ -114,10 +98,9 @@ pied-pi/                        # Extension package (pure logic)
     index.ts                    # Thin entry point — creates context, wires events, delegates
     types.ts                    # Interfaces: PhaseConfig, HarnessConfig, HarnessState, HarnessContext
     config.ts                   # Project discovery (walks CWD upward) and YAML config loading
-    helpers.ts                  # Pure functions: state factory, phase lookup, transition logic,
-                                #   file-existence gates, skill loading, system prompt builder
-    commands.ts                 # registerCommands(ctx) — all 5 slash commands
-    tools.ts                    # registerTools(ctx) — all 4 model-facing tools
+    helpers.ts                  # Pure functions: state factory, phase lookup, transition logic, skill loading, system prompt builder
+    commands.ts                 # registerCommands(ctx) — all 3 slash commands
+    tools.ts                    # registerTools(ctx) — all 2 model-facing tools
   .pied-pi/                     # Project config (lives alongside the extension or in any project)
     harness.yaml                # Phase definitions
     skills/
