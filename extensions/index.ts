@@ -14,7 +14,7 @@ export default function (pi: ExtensionAPI) {
   const ctx: HarnessContext = {
     pi,
     config,
-    state: freshState(config.slug, config.phases[0].name),
+    state: freshState(config.phases[0].name),
     piedPiDir,
     projectRoot,
     persistState() {
