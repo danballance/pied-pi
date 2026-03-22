@@ -29,18 +29,13 @@ export function loadConfig(piedPiDir: string): HarnessConfig {
   if (!parsed.phases || !Array.isArray(parsed.phases) || parsed.phases.length === 0) {
     throw new Error(`pi-harness: ${configPath} must contain a non-empty "phases" array.`);
   }
-  if (typeof parsed.slug !== "string" || parsed.slug.length === 0) {
-    throw new Error(`pi-harness: ${configPath} must contain a non-empty "slug" string.`);
-  }
   for (let i = 0; i < parsed.phases.length; i++) {
     const p = parsed.phases[i];
     const prefix = `pi-harness: ${configPath} phases[${i}]`;
     if (typeof p.name !== "string" || p.name.length === 0) throw new Error(`${prefix}: "name" must be a non-empty string.`);
     if (typeof p.label !== "string" || p.label.length === 0) throw new Error(`${prefix} (${p.name}): "label" must be a non-empty string.`);
-    if (typeof p.optional !== "boolean") throw new Error(`${prefix} (${p.name}): "optional" must be a boolean.`);
     if (!Array.isArray(p.requires)) throw new Error(`${prefix} (${p.name}): "requires" must be an array.`);
     if (typeof p.confirm !== "boolean") throw new Error(`${prefix} (${p.name}): "confirm" must be a boolean.`);
-    if (!Array.isArray(p.files_exist)) throw new Error(`${prefix} (${p.name}): "files_exist" must be an array.`);
     if (typeof p.skill !== "string" || p.skill.length === 0) throw new Error(`${prefix} (${p.name}): "skill" must be a non-empty string.`);
   }
   return parsed;
