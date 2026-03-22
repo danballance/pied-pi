@@ -3,16 +3,15 @@ import { freshState, getPhase } from "./helpers";
 
 export function registerCommands(ctx: HarnessContext): void {
   ctx.pi.registerCommand("harness", {
-    description: "Start the development harness (optionally provide a slug)",
-    handler: async (args, uiCtx) => {
-      const slug = args.trim() || ctx.config.slug;
-      ctx.state = freshState(slug, ctx.config.phases[0].name);
+    description: "Start the development harness",
+    handler: async (_args, uiCtx) => {
+      ctx.state = freshState(ctx.config.phases[0].name);
       ctx.persistState();
       const phase = getPhase(ctx.config, ctx.state.currentPhase);
       if (phase) {
         uiCtx.ui.setStatus("harness", phase.label);
       }
-      uiCtx.ui.notify(`Harness activated for "${slug}" — starting with ${phase?.label ?? ctx.state.currentPhase}`, "info");
+      uiCtx.ui.notify(`Harness activated — starting with ${phase?.label ?? ctx.state.currentPhase}`, "info");
       ctx.pi.sendUserMessage(
         "The development harness is now active. Call the harness_instructions tool to read the skill content for the current phase and begin.",
         { deliverAs: "followUp" },
@@ -28,49 +27,16 @@ export function registerCommands(ctx: HarnessContext): void {
         return;
       }
       const lines = [
-        `Current: ${getPhase(ctx.config, ctx.state.currentPhase)?.label ?? ctx.state.currentPhase} | Slug: ${ctx.state.slug}`,
+        `Current: ${getPhase(ctx.config, ctx.state.currentPhase)?.label ?? ctx.state.currentPhase}`,
         "",
         "Progress:",
         ...ctx.config.phases.map((p) => {
           if (ctx.state.completed.includes(p.name)) return `  [done] ${p.label}`;
-          if (ctx.state.skipped.includes(p.name)) return `  [skip] ${p.label}`;
           if (p.name === ctx.state.currentPhase) return `  [>>]   ${p.label}`;
           return `  [  ]   ${p.label}`;
         }),
       ];
       uiCtx.ui.setWidget("harness-progress", lines);
-    },
-  });
-
-  ctx.pi.registerCommand("harness-reset", {
-    description: "Reset the harness to the initial state",
-    handler: async (_args, uiCtx) => {
-      ctx.state = freshState(ctx.config.slug, ctx.config.phases[0].name);
-      ctx.state.active = false;
-      ctx.persistState();
-      uiCtx.ui.setStatus("harness", "");
-      uiCtx.ui.notify("Harness reset", "info");
-    },
-  });
-
-  ctx.pi.registerCommand("harness-goto", {
-    description: "Jump to a specific phase (e.g., /harness-goto implement)",
-    handler: async (args, uiCtx) => {
-      const target = args.trim();
-      const phase = getPhase(ctx.config, target);
-      if (!phase) {
-        const validNames = ctx.config.phases.map((p) => p.name).join(", ");
-        uiCtx.ui.notify(
-          `Unknown phase: "${target}". Valid: ${validNames}`,
-          "error",
-        );
-        return;
-      }
-      ctx.state.currentPhase = target;
-      ctx.state.active = true;
-      ctx.persistState();
-      uiCtx.ui.setStatus("harness", phase.label);
-      uiCtx.ui.notify(`Jumped to phase: ${phase.label}`, "info");
     },
   });
 
