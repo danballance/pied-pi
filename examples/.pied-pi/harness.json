@@ -1,0 +1,28 @@
+{
+  "phases": [
+    {
+      "name": "planning",
+      "label": "Planning",
+      "requires": [],
+      "skill": "planning"
+    },
+    {
+      "name": "test-creation",
+      "label": "Test Creation",
+      "requires": ["planning"],
+      "skill": "test-creation"
+    },
+    {
+      "name": "implementation",
+      "label": "Implementation",
+      "requires": ["test-creation"],
+      "skill": "implementation"
+    },
+    {
+      "name": "documentation",
+      "label": "Documentation",
+      "requires": ["implementation"],
+      "skill": "documentation"
+    }
+  ]
+}

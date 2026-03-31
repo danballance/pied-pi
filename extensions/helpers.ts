@@ -9,7 +9,6 @@ export function freshState(firstPhase: string): HarnessState {
     currentPhase: firstPhase,
     completed: [],
     active: true,
-    pendingConfirm: false,
   };
 }
 
@@ -54,10 +53,6 @@ export function buildSystemPrompt(config: HarnessConfig, state: HarnessState): s
     })
     .join("\n");
 
-  const confirmRule = phase.confirm
-    ? "\n- This phase requires user confirmation before advancing. Present your work to the user and wait for approval before calling harness_advance."
-    : "";
-
   return `<pi-harness>
 Phase: ${phase.label}
 
@@ -69,6 +64,7 @@ Tools: harness_advance, harness_instructions
 Rules:
 - Complete the current phase before advancing.
 - Call harness_instructions to read phase-specific skill content.
-- Do NOT skip ahead or work on future phases.${confirmRule}
+- Do NOT skip ahead or work on future phases.
+- Advance immediately when phase deliverables are complete — do not stop to ask for approval.
 </pi-harness>`;
 }

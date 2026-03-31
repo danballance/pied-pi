@@ -6,7 +6,6 @@ export interface PhaseConfig {
   name: string;
   label: string;
   requires: string[];
-  confirm: boolean;
   skill: string;
 }
 
@@ -20,7 +19,15 @@ export interface HarnessState {
   currentPhase: string;
   completed: string[];
   active: boolean;
-  pendingConfirm: boolean;
+}
+
+export interface HarnessStatus {
+  kind: "park-bench-harness-status";
+  status: "running" | "completed";
+  current_phase: string | null;
+  completed_phases: string[];
+  summary: string | null;
+  updated_at: string;
 }
 
 // ── Shared context ─────────────────────────────────────────────────────
@@ -32,4 +39,5 @@ export interface HarnessContext {
   piedPiDir: string;
   projectRoot: string;
   persistState: () => void;
+  writeStatus: (summary?: string | null) => void;
 }

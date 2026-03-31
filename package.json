@@ -1,7 +1,7 @@
 {
-  "name": "@anthropic-user/pi-harness",
+  "name": "@anthropic-user/pied-pi",
   "version": "0.1.0",
-  "description": "A phased development harness for Pi coding agent — enforces Research → Planning → Implementation → Documentation workflow",
+  "description": "A phased development harness for Pi coding agent.",
   "keywords": ["pi-package"],
   "pi": {
     "extensions": ["./extensions"]

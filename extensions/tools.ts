@@ -16,7 +16,7 @@ export function registerTools(ctx: HarnessContext): void {
     }),
     promptGuidelines:
       "Use harness_advance when you have completed all deliverables for the current phase.",
-    async execute(_toolCallId, params, _onUpdate, uiCtx) {
+    async execute(_toolCallId, params, _signal, _onUpdate, uiCtx) {
       if (!ctx.state.active) {
         return {
           content: [{ type: "text", text: "Harness is not active." }],
@@ -39,34 +39,16 @@ export function registerTools(ctx: HarnessContext): void {
         };
       }
 
-      // Confirm gate (two-call pattern)
-      if (phase.confirm && !ctx.state.pendingConfirm) {
-        ctx.state.pendingConfirm = true;
-        ctx.persistState();
-        return {
-          content: [
-            {
-              type: "text",
-              text:
-                `Phase "${phase.label}" requires user confirmation before advancing. ` +
-                `Present your work to the user and wait for their approval. ` +
-                `Once the user confirms, call harness_advance again to complete the phase.`,
-            },
-          ],
-          details: {},
-        };
-      }
-
-      // Advance: push to completed, reset pendingConfirm
+      // Advance: push to completed
       ctx.state.completed.push(phase.name);
-      ctx.state.pendingConfirm = false;
 
       const next = nextPhase(ctx.config, ctx.state);
 
       if (!next) {
         ctx.state.active = false;
         ctx.persistState();
-        uiCtx.ui.setStatus("harness", "Complete");
+        ctx.writeStatus(params.summary);
+        if (uiCtx.hasUI) uiCtx.ui.setStatus("harness", "Complete");
         return {
           content: [
             {
@@ -82,7 +64,8 @@ export function registerTools(ctx: HarnessContext): void {
 
       ctx.state.currentPhase = next.name;
       ctx.persistState();
-      uiCtx.ui.setStatus("harness", next.label);
+      ctx.writeStatus();
+      if (uiCtx.hasUI) uiCtx.ui.setStatus("harness", next.label);
 
       return {
         content: [

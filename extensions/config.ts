@@ -1,21 +1,20 @@
 import { readFileSync, existsSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
-import * as yaml from "js-yaml";
 import type { HarnessConfig } from "./types";
 
 export function discoverProjectDir(): string {
   let dir = resolve(process.cwd());
   while (true) {
     const candidate = join(dir, ".pied-pi");
-    if (existsSync(candidate) && existsSync(join(candidate, "harness.yaml"))) {
+    if (existsSync(candidate) && existsSync(join(candidate, "harness.json"))) {
       return candidate;
     }
     const parent = dirname(dir);
     if (parent === dir) {
       throw new Error(
-        `pi-harness: Could not find .pied-pi/harness.yaml.\n` +
+        `pi-harness: Could not find .pied-pi/harness.json.\n` +
         `Searched from ${process.cwd()} to filesystem root.\n` +
-        `Create a .pied-pi/harness.yaml in your project root.`
+        `Create a .pied-pi/harness.json in your project root.`
       );
     }
     dir = parent;
@@ -23,9 +22,9 @@ export function discoverProjectDir(): string {
 }
 
 export function loadConfig(piedPiDir: string): HarnessConfig {
-  const configPath = join(piedPiDir, "harness.yaml");
+  const configPath = join(piedPiDir, "harness.json");
   const raw = readFileSync(configPath, "utf-8");
-  const parsed = yaml.load(raw) as HarnessConfig;
+  const parsed = JSON.parse(raw) as HarnessConfig;
   if (!parsed.phases || !Array.isArray(parsed.phases) || parsed.phases.length === 0) {
     throw new Error(`pi-harness: ${configPath} must contain a non-empty "phases" array.`);
   }
@@ -35,7 +34,6 @@ export function loadConfig(piedPiDir: string): HarnessConfig {
     if (typeof p.name !== "string" || p.name.length === 0) throw new Error(`${prefix}: "name" must be a non-empty string.`);
     if (typeof p.label !== "string" || p.label.length === 0) throw new Error(`${prefix} (${p.name}): "label" must be a non-empty string.`);
     if (!Array.isArray(p.requires)) throw new Error(`${prefix} (${p.name}): "requires" must be an array.`);
-    if (typeof p.confirm !== "boolean") throw new Error(`${prefix} (${p.name}): "confirm" must be a boolean.`);
     if (typeof p.skill !== "string" || p.skill.length === 0) throw new Error(`${prefix} (${p.name}): "skill" must be a non-empty string.`);
   }
   return parsed;

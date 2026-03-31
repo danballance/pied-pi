@@ -4,6 +4,7 @@ import { discoverProjectDir, loadConfig } from "./config";
 import { freshState, CUSTOM_ENTRY_TYPE, getPhase, buildSystemPrompt } from "./helpers";
 import { registerCommands } from "./commands";
 import { registerTools } from "./tools";
+import { writeHarnessStatus } from "./status";
 import type { HarnessContext, HarnessState } from "./types";
 
 export default function (pi: ExtensionAPI) {
@@ -19,6 +20,9 @@ export default function (pi: ExtensionAPI) {
     projectRoot,
     persistState() {
       pi.appendEntry(CUSTOM_ENTRY_TYPE, structuredClone(ctx.state));
+    },
+    writeStatus(summary = null) {
+      writeHarnessStatus(ctx.piedPiDir, ctx.state, summary);
     },
   };
   ctx.state.active = false;
@@ -48,6 +52,19 @@ export default function (pi: ExtensionAPI) {
     return {
       systemPrompt: event.systemPrompt + "\n" + buildSystemPrompt(config, ctx.state),
     };
+  });
+
+  pi.on("agent_end", async (_event, uiCtx) => {
+    if (!ctx.state.active) return;
+
+    const phase = getPhase(config, ctx.state.currentPhase);
+    if (phase && uiCtx.hasUI) {
+      uiCtx.ui.setStatus("harness", phase.label);
+    }
+
+    ctx.pi.sendUserMessage(
+      `The harness is still active. Continue working on the current phase (${phase?.label ?? ctx.state.currentPhase}). Do not stop yet. Only finish when you have completed the phase deliverables and called harness_advance. If you need the phase instructions again, call harness_instructions.`,
+    );
   });
 
   // ── Register commands & tools ──────────────────────────────────────

@@ -7,11 +7,14 @@ export function registerCommands(ctx: HarnessContext): void {
     handler: async (_args, uiCtx) => {
       ctx.state = freshState(ctx.config.phases[0].name);
       ctx.persistState();
+      ctx.writeStatus();
       const phase = getPhase(ctx.config, ctx.state.currentPhase);
-      if (phase) {
-        uiCtx.ui.setStatus("harness", phase.label);
+      if (uiCtx.hasUI) {
+        if (phase) {
+          uiCtx.ui.setStatus("harness", phase.label);
+        }
+        uiCtx.ui.notify(`Harness activated — starting with ${phase?.label ?? ctx.state.currentPhase}`, "info");
       }
-      uiCtx.ui.notify(`Harness activated — starting with ${phase?.label ?? ctx.state.currentPhase}`, "info");
       ctx.pi.sendUserMessage(
         "The development harness is now active. Call the harness_instructions tool to read the skill content for the current phase and begin.",
         { deliverAs: "followUp" },
@@ -23,7 +26,7 @@ export function registerCommands(ctx: HarnessContext): void {
     description: "Show the current harness phase and progress",
     handler: async (_args, uiCtx) => {
       if (!ctx.state.active) {
-        uiCtx.ui.notify("Harness is not active. Use /harness to start.", "info");
+        if (uiCtx.hasUI) uiCtx.ui.notify("Harness is not active. Use /harness to start.", "info");
         return;
       }
       const lines = [
@@ -36,7 +39,7 @@ export function registerCommands(ctx: HarnessContext): void {
           return `  [  ]   ${p.label}`;
         }),
       ];
-      uiCtx.ui.setWidget("harness-progress", lines);
+      if (uiCtx.hasUI) uiCtx.ui.setWidget("harness-progress", lines);
     },
   });
 
@@ -47,16 +50,17 @@ export function registerCommands(ctx: HarnessContext): void {
       const phase = getPhase(ctx.config, target);
       if (!phase) {
         const validNames = ctx.config.phases.map((p) => p.name).join(", ");
-        uiCtx.ui.notify(`Unknown phase: "${target}". Valid: ${validNames}`, "error");
+        if (uiCtx.hasUI) uiCtx.ui.notify(`Unknown phase: "${target}". Valid: ${validNames}`, "error");
         return;
       }
       if (ctx.state.completed.includes(phase.name)) {
-        uiCtx.ui.notify(`"${phase.label}" is already completed.`, "info");
+        if (uiCtx.hasUI) uiCtx.ui.notify(`"${phase.label}" is already completed.`, "info");
         return;
       }
       ctx.state.completed.push(phase.name);
       ctx.persistState();
-      uiCtx.ui.notify(`Marked "${phase.label}" as completed.`, "info");
+      ctx.writeStatus();
+      if (uiCtx.hasUI) uiCtx.ui.notify(`Marked "${phase.label}" as completed.`, "info");
     },
   });
 }
