@@ -1,10 +1,12 @@
 import type { HarnessContext } from "./types";
 import { freshState, getPhase } from "./helpers";
+import { log } from "./logging";
 
 export function registerCommands(ctx: HarnessContext): void {
   ctx.pi.registerCommand("harness", {
     description: "Start the development harness",
     handler: async (_args, uiCtx) => {
+      log("/harness", { action: "start", firstPhase: ctx.config.phases[0].name });
       ctx.state = freshState(ctx.config.phases[0].name);
       ctx.persistState();
       ctx.writeStatus();
@@ -15,7 +17,7 @@ export function registerCommands(ctx: HarnessContext): void {
         }
         uiCtx.ui.notify(`Harness activated — starting with ${phase?.label ?? ctx.state.currentPhase}`, "info");
       }
-      ctx.pi.sendUserMessage(
+      await ctx.pi.sendUserMessage(
         "The development harness is now active. Call the harness_instructions tool to read the skill content for the current phase and begin.",
         { deliverAs: "followUp" },
       );

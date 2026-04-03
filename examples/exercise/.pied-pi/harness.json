@@ -1,0 +1,16 @@
+{
+  "phases": [
+    {
+      "name": "planning",
+      "label": "Planning",
+      "requires": [],
+      "skill": "planning"
+    },
+    {
+      "name": "implementation",
+      "label": "Implementation",
+      "requires": ["planning"],
+      "skill": "implementation"
+    }
+  ]
+}

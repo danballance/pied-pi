@@ -35,6 +35,14 @@ export function loadConfig(piedPiDir: string): HarnessConfig {
     if (typeof p.label !== "string" || p.label.length === 0) throw new Error(`${prefix} (${p.name}): "label" must be a non-empty string.`);
     if (!Array.isArray(p.requires)) throw new Error(`${prefix} (${p.name}): "requires" must be an array.`);
     if (typeof p.skill !== "string" || p.skill.length === 0) throw new Error(`${prefix} (${p.name}): "skill" must be a non-empty string.`);
+
+    const skillPath = join(piedPiDir, "skills", p.skill, "SKILL.md");
+    if (!existsSync(skillPath)) {
+      throw new Error(
+        `${prefix} (${p.name}): missing skill file at ${skillPath}. `
+        + "Create the skill file or update harness.json to reference an existing skill.",
+      );
+    }
   }
   return parsed;
 }

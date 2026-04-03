@@ -1,6 +1,7 @@
 import { Type } from "@sinclair/typebox";
 import type { HarnessContext } from "./types";
 import { getPhase, nextPhase, loadSkillContent } from "./helpers";
+import { log } from "./logging";
 
 export function registerTools(ctx: HarnessContext): void {
   ctx.pi.registerTool({
@@ -17,7 +18,9 @@ export function registerTools(ctx: HarnessContext): void {
     promptGuidelines:
       "Use harness_advance when you have completed all deliverables for the current phase.",
     async execute(_toolCallId, params, _signal, _onUpdate, uiCtx) {
+      log("harness_advance:execute", { active: ctx.state.active, phase: ctx.state.currentPhase, summary: params.summary });
       if (!ctx.state.active) {
+        log("harness_advance:execute", { result: "not active" });
         return {
           content: [{ type: "text", text: "Harness is not active." }],
           details: {},
@@ -48,6 +51,7 @@ export function registerTools(ctx: HarnessContext): void {
         ctx.state.active = false;
         ctx.persistState();
         ctx.writeStatus(params.summary);
+        log("harness_advance:execute", { result: "all phases complete", completed: ctx.state.completed });
         if (uiCtx.hasUI) uiCtx.ui.setStatus("harness", "Complete");
         return {
           content: [
@@ -65,6 +69,7 @@ export function registerTools(ctx: HarnessContext): void {
       ctx.state.currentPhase = next.name;
       ctx.persistState();
       ctx.writeStatus();
+      log("harness_advance:execute", { result: "advanced", from: phase!.name, to: next.name, completed: ctx.state.completed });
       if (uiCtx.hasUI) uiCtx.ui.setStatus("harness", next.label);
 
       return {
@@ -90,6 +95,7 @@ export function registerTools(ctx: HarnessContext): void {
       "Get the skill content / detailed instructions for the current harness phase.",
     parameters: Type.Object({}),
     async execute() {
+      log("harness_instructions:execute", { active: ctx.state.active, phase: ctx.state.currentPhase });
       if (!ctx.state.active) {
         return {
           content: [{ type: "text", text: "Harness is not active." }],
@@ -99,6 +105,7 @@ export function registerTools(ctx: HarnessContext): void {
 
       const phase = getPhase(ctx.config, ctx.state.currentPhase)!;
       const content = loadSkillContent(ctx.piedPiDir, phase.skill);
+      log("harness_instructions:execute", { skill: phase.skill, contentLength: content.length });
       return {
         content: [{ type: "text", text: content }],
         details: {},
