@@ -22,11 +22,12 @@ export interface HarnessState {
 }
 
 export interface HarnessStatus {
-  kind: "park-bench-harness-status";
-  status: "running" | "completed";
+  kind: "park-bench-agent-run-status";
+  state: "running" | "completed" | "failed";
   current_phase: string | null;
   completed_phases: string[];
   summary: string | null;
+  failure_reason: string | null;
   updated_at: string;
 }
 
@@ -39,5 +40,5 @@ export interface HarnessContext {
   piedPiDir: string;
   projectRoot: string;
   persistState: () => void;
-  writeStatus: (summary?: string | null) => void;
+  writeStatus: (summary?: string | null, failureReason?: string | null) => void;
 }

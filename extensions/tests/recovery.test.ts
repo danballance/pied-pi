@@ -138,6 +138,9 @@ describe("pied-pi recovery nudges", () => {
       );
     }
 
+    const status = readStatus(projectRoot);
+    expect(status.state).toBe("failed");
+    expect(status.failure_reason).toBe("max_consecutive_nudges");
     expect(pi.sendUserMessage).toHaveBeenCalledTimes(3);
   });
 
@@ -315,9 +318,11 @@ describe("pied-pi recovery nudges", () => {
     );
 
     const status = readStatus(projectRoot);
-    expect(status.status).toBe("completed");
+    expect(status.kind).toBe("park-bench-agent-run-status");
+    expect(status.state).toBe("failed");
     expect(status.current_phase).toBeNull();
     expect(status.completed_phases).toEqual(["planning"]);
+    expect(status.failure_reason).toBe("repeated_error_stops");
     expect(status.summary).toContain("Forced harness completion after repeated unrecoverable model/tool-call errors");
     expect(pi.sendUserMessage).toHaveBeenCalledTimes(4);
   });

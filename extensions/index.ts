@@ -63,8 +63,8 @@ export default function (pi: ExtensionAPI) {
     persistState() {
       pi.appendEntry(CUSTOM_ENTRY_TYPE, structuredClone(ctx.state));
     },
-    writeStatus(summary = null) {
-      writeHarnessStatus(ctx.piedPiDir, ctx.state, summary);
+    writeStatus(summary = null, failureReason = null) {
+      writeHarnessStatus(ctx.piedPiDir, ctx.state, summary, failureReason);
     },
   };
   ctx.state.active = false;
@@ -105,7 +105,7 @@ export default function (pi: ExtensionAPI) {
     ctx.state.active = false;
     lastQueuedNudge = null;
     ctx.persistState();
-    ctx.writeStatus(summary);
+    ctx.writeStatus(summary, reason);
     log("force_complete", {
       phase: ctx.state.currentPhase,
       completed: ctx.state.completed,
@@ -113,7 +113,7 @@ export default function (pi: ExtensionAPI) {
       reason,
     });
     if (uiCtx.hasUI) {
-      uiCtx.ui.setStatus("harness", "Complete");
+      uiCtx.ui.setStatus("harness", "Failed");
       uiCtx.ui.notify(summary, "warning");
     }
   }

@@ -43,8 +43,8 @@ function createContext(baseDir: string): HarnessContext {
     piedPiDir,
     projectRoot: baseDir,
     persistState: vi.fn(),
-    writeStatus(summary = null) {
-      writeHarnessStatus(piedPiDir, context.state, summary);
+    writeStatus(summary = null, failureReason = null) {
+      writeHarnessStatus(piedPiDir, context.state, summary, failureReason);
     },
   };
 
@@ -68,10 +68,12 @@ describe("pied-pi status contract", () => {
     await context.commands.get("harness")?.("", uiCtx);
 
     const status = readStatus(baseDir);
-    expect(status.status).toBe("running");
+    expect(status.kind).toBe("park-bench-agent-run-status");
+    expect(status.state).toBe("running");
     expect(status.current_phase).toBe("planning");
     expect(status.completed_phases).toEqual([]);
     expect(status.summary).toBeNull();
+    expect(status.failure_reason).toBeNull();
   });
 
   it("writes completed status on final harness_advance", async () => {
@@ -92,9 +94,11 @@ describe("pied-pi status contract", () => {
     );
 
     const status = readStatus(baseDir);
-    expect(status.status).toBe("completed");
+    expect(status.kind).toBe("park-bench-agent-run-status");
+    expect(status.state).toBe("completed");
     expect(status.current_phase).toBeNull();
     expect(status.completed_phases).toEqual(["planning", "documentation"]);
     expect(status.summary).toBe("finished docs");
+    expect(status.failure_reason).toBeNull();
   });
 });
